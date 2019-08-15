@@ -9,21 +9,36 @@ GAME RULES:
 
 */
 
-var scores, roundScore, activePlayer;
+var scores, roundScore, activePlayer, gameOver;
 
-scores = [0,0];
-roundScore = 0;
-activePlayer = 0;
+resetGame();
 
-// Using query Selector to select a "class" and then manipulate .class and it's class
-document.querySelector('.dice').style.display = 'none';
+function resetGame() {
+  scores = [0,0];
+  roundScore = 0;
+  activePlayer = 0;
+  gameOver = false;
 
+  // Using query Selector to select a "class" and then manipulate .class and it's class
+  document.querySelector('.dice').style.display = 'none';
 
-// you can select by ID exclusively as well
-document.getElementById('score-0').textContent = 0;
-document.getElementById('score-1').textContent = 0;
-document.getElementById('current-0').textContent = 0;
-document.getElementById('current-1').textContent = 0;
+  // you can select by ID exclusively as well
+  document.getElementById('score-0').textContent = 0;
+  document.getElementById('score-1').textContent = 0;
+  document.getElementById('current-0').textContent = 0;
+  document.getElementById('current-1').textContent = 0;
+
+  document.getElementById('name-0').textContent = 'Player 1';
+  document.getElementById('name-1').textContent = 'Player 2';
+  document.querySelector('.player-0-panel').classList.remove('winner');
+  document.querySelector('.player-1-panel').classList.remove('winner');
+  document.querySelector('.player-0-panel').classList.remove('active');
+  document.querySelector('.player-1-panel').classList.remove('active');
+
+  // Note you must remove before adding because you can end up having
+  // multiples of the same class on the same element
+  document.querySelector('.player-0-panel').classList.add('active');
+}
 
 // Button Events
 // There is supposedly some significane about the Scope PAth and also
@@ -35,6 +50,8 @@ document.getElementById('current-1').textContent = 0;
 // 3. Then the function (can be named or anonymous) to be triggered
 // Roll the Dice!
 document.querySelector('.btn-roll').addEventListener('click', function() {
+  if (gameOver) { return; }
+
   // Random Number
   var dice = Math.floor(Math.random() * 6) + 1;
   // display the result
@@ -47,21 +64,48 @@ document.querySelector('.btn-roll').addEventListener('click', function() {
     roundScore += dice;
     document.querySelector('#current-' + activePlayer).textContent = roundScore;
   } else {
-    activePlayer === 0 ? activePlayer = 1 : activePlayer = 0;
-    roundScore = 0;
-
-    document.getElementById('current-0').textContent = 0;
-    document.getElementById('current-1').textContent = 0;
-
-    // TOGGLE !!! very nice indeed
-    document.querySelector('.player-0-panel').classList.toggle('active');
-    document.querySelector('.player-1-panel').classList.toggle('active');
-
-    diceDOM.style.display = 'none';
+    nextPlayer();
   }
 });
 
+document.querySelector('.btn-hold').addEventListener('click', function() {
+  if (gameOver || roundScore === 0) { return; }
 
+  // ADD CURRENT SCORE TO ACTIVE PLAYERS GLOBAL SCORE
+  scores[activePlayer] += roundScore;
+
+  // Update UI
+  document.getElementById('score-' + activePlayer).textContent = scores[activePlayer];
+
+
+  // Check if player won the Game
+  if(scores[activePlayer] >= 100 ){
+      document.getElementById('name-' + activePlayer).textContent = 'WINNER!';
+      document.querySelector('.dice').style.display = 'none';
+      document.querySelector('.player-' + activePlayer + '-panel').classList.add('winner');
+      document.querySelector('.player-' + activePlayer + '-panel').classList.remove('active');
+      gameOver = true;
+  } else {
+      nextPlayer();
+  }
+});
+
+document.querySelector('.btn-new').addEventListener('click', resetGame);
+
+
+function nextPlayer() {
+  activePlayer === 0 ? activePlayer = 1 : activePlayer = 0;
+  roundScore = 0;
+
+  document.getElementById('current-0').textContent = 0;
+  document.getElementById('current-1').textContent = 0;
+
+  // TOGGLE !!! very nice indeed
+  document.querySelector('.player-0-panel').classList.toggle('active');
+  document.querySelector('.player-1-panel').classList.toggle('active');
+
+  document.querySelector('.dice').style.display = 'none';
+};
 
 // Sample code// // Using querySelector and .textContent to change the value
 // document.querySelector('#current-' + activePlayer).textContent = dice;
